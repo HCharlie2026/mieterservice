@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Mieterservice</title>
+<style>
+/* Mieterservice: eine Spalte, mobil zuerst. Keine externen Schriften oder Dienste (Datenschutz). */
+:root {
+  --bg: #f5f6f3; --surface: #ffffff; --ink: #1c2321; --muted: #5d6a66; --line: #dde2df;
+  --accent: #1d6b57; --accent-ink: #ffffff; --accent-soft: #e2efe9;
+  --notfall: #b3261e; --notfall-soft: #fbe9e7; --dringend: #9a5b00; --dringend-soft: #fdf1dc; --ok: #1f7a3f;
+  --radius: 12px; --shadow: 0 1px 2px rgba(20, 30, 25, .06), 0 4px 16px rgba(20, 30, 25, .05);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #111614; --surface: #1a211e; --ink: #e6ece9; --muted: #9aa8a3; --line: #2c3632;
+  --accent: #5fbf9f; --accent-ink: #08130f; --accent-soft: #1f3530;
+  --notfall: #f2867c; --notfall-soft: #3a1c19; --dringend: #e9b56a; --dringend-soft: #3a2b14; --ok: #74d394;
+  --shadow: none; } }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--font); }
+.wrap { max-width: 640px; margin: 0 auto; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(32px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+header.kopf { padding: 8px 0 14px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: 24px; line-height: 1.25; margin: 2px 0 2px; text-wrap: balance; }
+h2 { font-size: 18px; margin: 0 0 10px; }
+h3 { font-size: 15px; margin: 0 0 8px; }
+p { margin: 0 0 10px; }
+.muted { color: var(--muted); }
+.karte { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin: 0 0 14px; }
+.notfallbox { border: 1px solid var(--notfall); background: var(--notfall-soft); border-radius: var(--radius); padding: 12px 14px; margin: 0 0 14px; font-size: 14px; }
+.notfallbox b { color: var(--notfall); }
+.notfallbox details summary { cursor: pointer; font-weight: 600; color: var(--notfall); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.notfallbox details summary::-webkit-details-marker { display: none; }
+.notfallbox details summary::after { content: "+"; font-size: 20px; line-height: 1; }
+.notfallbox details[open] summary::after { content: "−"; }
+.notfallbox ul { margin: 8px 0 0; padding-left: 18px; }
+.notfallbox li { margin: 3px 0; }
+a { color: var(--accent); }
+a.tel { font-weight: 600; white-space: nowrap; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin: 0 0 14px; }
+.tab { border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 15px; padding: 9px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-radius: 999px; cursor: pointer; }
+.tab.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.schritt { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; }
+.schritt .nr { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--ink); font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+.kategorien { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.kat { display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 10px; font: inherit; font-size: 14px; line-height: 1.25; cursor: pointer; min-height: 52px; }
+.kat svg { flex: none; width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.kat.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.wahl { display: grid; gap: 8px; }
+.option { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; border: 1px solid var(--line); border-radius: 10px; padding: 12px; cursor: pointer; }
+.option input { margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--accent); }
+.option b { display: block; }
+.option small { grid-column: 2; color: var(--muted); font-size: 13px; }
+.option.notfall b { color: var(--notfall); } .option.dringend b { color: var(--dringend); }
+.option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.option.notfall:has(input:checked) { border-color: var(--notfall); background: var(--notfall-soft); }
+.sofort { border-left: 4px solid var(--notfall); background: var(--notfall-soft); padding: 10px 12px; border-radius: 0 10px 10px 0; font-size: 14px; margin-top: 10px; }
+.sofort ul { margin: 6px 0 0; padding-left: 18px; }
+label.feld { display: block; font-weight: 600; font-size: 14px; margin: 12px 0 4px; }
+label.feld small { font-weight: 400; color: var(--muted); }
+input[type=text], input[type=tel], input[type=email], select, textarea {
+  width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+textarea { min-height: 110px; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, .option:focus-within, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hinweis { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.fehler-feld { color: var(--notfall); font-size: 13px; margin-top: 4px; }
+.fotos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.foto { position: relative; width: 84px; height: 84px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--bg); }
+.foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto button { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 16px; line-height: 1; cursor: pointer; }
+.foto-add { width: 84px; height: 84px; border-radius: 10px; border: 1px dashed var(--muted); display: grid; place-items: center; text-align: center; font-size: 12px; color: var(--muted); cursor: pointer; padding: 6px; }
+.foto-add svg { width: 26px; height: 26px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+.check { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: 14px; margin-top: 14px; }
+.check input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--accent); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; padding: 11px 16px; border-radius: 10px; cursor: pointer; text-decoration: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.gross { width: 100%; padding: 14px 16px; font-size: 17px; }
+.btn:disabled { opacity: .55; cursor: default; }
+.aktionen { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.meldung-fehler { border: 1px solid var(--notfall); background: var(--notfall-soft); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-top: 12px; }
+.erfolg { text-align: center; padding: 26px 16px; }
+.erfolg .haken { width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%; background: var(--accent-soft); display: grid; place-items: center; }
+.erfolg .haken svg { width: 34px; height: 34px; stroke: var(--accent); fill: none; stroke-width: 2.4; }
+.vnr { font-size: 22px; font-weight: 700; letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+.liste-leer { text-align: center; color: var(--muted); padding: 24px 8px; }
+.vorgang summary { list-style: none; cursor: pointer; display: grid; gap: 4px; }
+.vorgang summary::-webkit-details-marker { display: none; }
+.vg-kopf { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.vg-nr { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pill { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 9px; background: var(--accent-soft); color: var(--ink); }
+.pill.offen { background: var(--dringend-soft); }
+.pill.erledigt { background: var(--accent); color: var(--accent-ink); }
+.pill.notfall { background: var(--notfall-soft); color: var(--notfall); }
+.vg-datum { margin-left: auto; font-size: 13px; color: var(--muted); }
+.fortschritt { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 12px 0 6px; }
+.fortschritt span { height: 6px; border-radius: 3px; background: var(--line); }
+.fortschritt span.an { background: var(--accent); }
+.fs-text { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 11px; color: var(--muted); }
+.termin { border: 1px solid var(--accent); border-radius: 10px; padding: 10px 12px; margin: 10px 0; background: var(--accent-soft); font-size: 15px; }
+.verlauf { display: grid; gap: 8px; margin: 12px 0; }
+.nachricht { max-width: 88%; padding: 9px 12px; border-radius: 12px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.nachricht small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.nachricht.vermieter { background: var(--surface); border: 1px solid var(--line); justify-self: start; }
+.nachricht.mieter { background: var(--accent-soft); justify-self: end; }
+.nachricht.system { justify-self: center; background: transparent; color: var(--muted); font-size: 13px; text-align: center; max-width: 100%; padding: 2px 8px; }
+.sterne { display: flex; gap: 4px; margin: 6px 0; }
+.stern { border: 0; background: transparent; font-size: 30px; line-height: 1; cursor: pointer; color: var(--line); padding: 2px; }
+.stern.an { color: #e2a400; }
+footer { margin-top: 26px; font-size: 13px; color: var(--muted); }
+footer p { margin: 0 0 6px; }
+dialog { border: 0; border-radius: var(--radius); padding: 0; max-width: 560px; width: calc(100% - 32px); background: var(--surface); color: var(--ink); }
+dialog::backdrop { background: rgba(0, 0, 0, .45); }
+dialog .inhalt { padding: 18px; max-height: 75vh; overflow: auto; font-size: 14px; }
+dialog .inhalt h3 { margin-top: 14px; }
+.lade { text-align: center; padding: 60px 12px; color: var(--muted); }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 12px; animation: drehen .9s linear infinite; }
+@keyframes drehen { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="kopf">
+    <div class="eyebrow">Mieterservice</div>
+    <h1 id="titel">Schaden oder Anliegen melden</h1>
+    <div class="muted" id="adresse"></div>
+  </header>
+
+  <main id="app" aria-live="polite">
+    <div class="lade" id="lade"><div class="spinner" aria-hidden="true"></div>Wird geladen …</div>
+  </main>
+
+  <footer id="fuss" hidden>
+    <p id="fuss-kontakt"></p>
+    <p><a href="#" id="ds-link">Datenschutzhinweis</a></p>
+  </footer>
+</div>
+
+<dialog id="ds">
+  <div class="inhalt" id="ds-inhalt"></div>
+  <div class="aktionen" style="padding: 0 18px 18px"><button class="btn primary" type="button" id="ds-zu">Schließen</button></div>
+</dialog>
+
+<script>
+"use strict";
+// Schnittstelle des Vermieters (Supabase Edge Function ims-mieter)
+const API = "https://tvwflgglobzwuapyoczz.supabase.co/functions/v1/ims-mieter";
+const MAX_FOTOS = 5, MAX_KANTE = 1600;
+
+const ICON = {
+  wasser: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+  heizung: '<path d="M6 4v16M10 4v16M14 4v16M18 4v16M4 8h16M4 16h16"/>',
+  strom: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  sanitaer: '<path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM6 12V5a2 2 0 0 1 4 0"/>',
+  fenster_tueren: '<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M12 3v18M4 12h16"/>',
+  feuchte: '<path d="M7 16a4 4 0 0 1 .5-7.9 5 5 0 0 1 9.6 1.4A3.5 3.5 0 0 1 17 16z"/><path d="M9 19v2M13 19v2M17 19v2"/>',
+  kueche_geraete: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 9h14M9 6h.01M9 12v3"/>',
+  schloss: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  gemeinschaft: '<path d="M3 21h18M5 21V9l7-5 7 5v12M10 21v-6h4v6"/>',
+  ungeziefer: '<ellipse cx="12" cy="13" rx="4" ry="6"/><path d="M12 7V4M8 10 4 8M16 10l4-2M8 15l-4 2M16 15l4 2"/>',
+  sonstiges: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+};
+const KATEGORIEN = [
+  ["wasser", "Wasser / Leck"], ["heizung", "Heizung / Warmwasser"], ["strom", "Strom / Elektrik"], ["sanitaer", "Bad / WC / Abfluss"],
+  ["fenster_tueren", "Fenster / Türen / Rollläden"], ["feuchte", "Feuchtigkeit / Schimmel"], ["kueche_geraete", "Küche / Geräte"],
+  ["schloss", "Schloss / Schlüssel"], ["gemeinschaft", "Treppenhaus / Keller / Außen"], ["ungeziefer", "Ungeziefer"], ["sonstiges", "Sonstiges"],
+];
+// Sofortmaßnahmen bei Notfällen (fest formuliert, keine KI)
+const SOFORT = {
+  wasser: ["Den Absperrhahn der Wohnung schließen (meist am Wasserzähler, im Bad oder in der Küche).", "Ist Wasser in der Nähe von Steckdosen oder Leuchten: die Sicherung für diesen Bereich ausschalten.", "Wasser auffangen, Wertsachen in Sicherheit bringen und Fotos machen.", "Kommt das Wasser von oben: bei den Nachbarn klingeln."],
+  strom: ["Bei Brandgeruch, Funken oder Rauch: Sicherung bzw. Fehlerstromschalter (FI) ausschalten und nichts anfassen.", "Bei Feuer sofort 112 anrufen.", "Ist nur ein Teil der Wohnung ohne Strom: im Sicherungskasten prüfen, ob eine Sicherung oder der FI ausgelöst hat."],
+  heizung: ["Bei Gasgeruch: keine Schalter, kein Licht, kein Handy in der Wohnung benutzen, Fenster öffnen, Wohnung verlassen und draußen 112 anrufen.", "Zeigt die Therme eine Störung, den Fehlercode notieren oder fotografieren.", "Bei Frost: Fenster geschlossen halten, damit keine Leitungen einfrieren."],
+  sanitaer: ["Läuft Wasser über: den Absperrhahn der Wohnung schließen.", "Ist das WC verstopft: nicht weiter spülen."],
+  schloss: ["Sind Sie ausgesperrt: rufen Sie bitte zuerst den Vermieter an, bevor Sie einen Schlüsseldienst beauftragen. Unseriöse Schlüsseldienste verlangen oft überhöhte Preise."],
+  fenster_tueren: ["Lässt sich die Wohnung nicht mehr abschließen: bitte zusätzlich anrufen."],
+};
+const RAEUME = ["", "Küche", "Bad", "WC", "Wohnzimmer", "Schlafzimmer", "Kinderzimmer / Arbeitszimmer", "Flur", "Balkon / Terrasse", "Keller", "Treppenhaus", "Außenbereich / Garage", "Ganze Wohnung", "Sonstiges"];
+const STATUS_STUFE = { eingegangen: 1, in_bearbeitung: 2, verwaltung: 2, beauftragt: 3, termin: 3, erledigt: 4, abgeschlossen: 4 };
+
+const $ = (s, r = document) => r.querySelector(s);
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v; else if (k === "html") n.innerHTML = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) n.append(c.nodeType ? c : String(c));
+  return n;
+}
+const icon = (k) => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("aria-hidden", "true"); s.innerHTML = ICON[k] || ICON.sonstiges; return s; };
+const datum = (s) => new Date(s).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+const zeit = (s) => new Date(s).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+const terminText = (s) => { const d = new Date(s); const t = d.toLocaleString("de-DE", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }); return t.replace(/, 00:00$/, "") + (/\d{2}:\d{2}$/.test(t) && !/00:00$/.test(t) ? " Uhr" : ""); };
+const telLink = (nr) => el("a", { class: "tel", href: "tel:" + String(nr).replace(/[^\d+]/g, "") }, nr);
+function speichern(k, v) { try { localStorage.setItem("ms_" + k, JSON.stringify(v)); } catch (e) {} }
+function laden(k, d) { try { const v = localStorage.getItem("ms_" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+
+const params = new URLSearchParams(location.search);
+const TOKEN = (params.get("t") || "").trim();
+let info = null, ansicht = "neu", entwurf = null, fotos = [], senden = false, erfolg = null;
+
+function neuerEntwurf() {
+  return { kategorie: "", dringlichkeit: "", ort: "", beschreibung: "", zugang: "", telefon: (info && info.mieter.telefon) || "", email: (info && info.mieter.email) || "",
+    einverstanden: false, idem: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)) };
+}
+
+async function api(method, body, qs) {
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 45000);
+  try {
+    const r = await fetch(API + (qs || ""), { method, signal: ctrl.signal, headers: body ? { "content-type": "application/json" } : undefined, body: body ? JSON.stringify(body) : undefined });
+    const j = await r.json().catch(() => ({ ok: false, fehler: "Unerwartete Antwort des Servers." }));
+    return j;
+  } catch (e) {
+    return { ok: false, fehler: e && e.name === "AbortError" ? "Die Verbindung hat zu lange gedauert. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut." : "Keine Verbindung. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut." };
+  } finally { clearTimeout(timer); }
+}
+
+async function start() {
+  if (!/^[0-9a-f-]{36}$/i.test(TOKEN)) return zeigeFehler("Der Link ist unvollständig.", "Bitte öffnen Sie die Seite über den Link oder QR-Code aus dem Schreiben Ihres Vermieters.");
+  const j = await api("GET", null, "?t=" + encodeURIComponent(TOKEN));
+  if (!j.ok) return zeigeFehler(j.fehler || "Die Seite konnte nicht geladen werden.", j.fehler && /Verbindung/.test(j.fehler) ? "" : "Bitte wenden Sie sich an Ihren Vermieter.", !!(j.fehler && /Verbindung|lange/.test(j.fehler)));
+  info = j;
+  entwurf = Object.assign(neuerEntwurf(), laden("entwurf_" + TOKEN.slice(0, 8), {}));
+  if (!entwurf.telefon) entwurf.telefon = info.mieter.telefon || ""; if (!entwurf.email) entwurf.email = info.mieter.email || "";
+  $("#adresse").textContent = info.wohnung.adresse + ", " + info.wohnung.ort;
+  const vm = info.vermieter;
+  $("#fuss-kontakt").replaceChildren("Vermieter: " + (vm.name || ""), vm.telefon ? " · Tel. " : "", vm.telefon ? telLink(vm.telefon) : "", vm.email ? " · " : "", vm.email ? el("a", { href: "mailto:" + vm.email }, vm.email) : "");
+  $("#fuss").hidden = false;
+  const ziel = decodeURIComponent((location.hash || "").slice(1));
+  if (ziel && info.vorgaenge.some((v) => v.nr === ziel)) ansicht = "liste";
+  zeichne();
+  if (ziel) { const n = document.getElementById("vg-" + ziel); if (n) { n.open = true; n.scrollIntoView({ block: "start" }); } }
+}
+
+function zeigeFehler(titel, text, nochmal) {
+  $("#app").replaceChildren(el("div", { class: "karte" }, el("h2", {}, titel), text ? el("p", { class: "muted" }, text) : null,
+    nochmal ? el("div", { class: "aktionen" }, el("button", { class: "btn primary", type: "button", onclick: () => { $("#app").replaceChildren(el("div", { class: "lade" }, el("div", { class: "spinner" }), "Wird geladen …")); start(); } }, "Erneut versuchen")) : null));
+}
+
+function notfallBox() {
+  const vm = info.vermieter, li = [];
+  li.push(el("li", {}, el("b", {}, "Gefahr für Personen oder Feuer: "), telLink("112")));
+  li.push(el("li", {}, el("b", {}, "Gasgeruch: "), "keine Schalter oder Geräte betätigen, Fenster öffnen, Haus verlassen, draußen ", telLink("112"), " anrufen."));
+  li.push(el("li", {}, el("b", {}, "Wasser läuft: "), "Absperrhahn der Wohnung schließen, dann hier als Notfall melden."));
+  for (const k of info.kontakte || []) if (k.telefon) li.push(el("li", {}, el("b", {}, (k.name || k.rolle) + ": "), telLink(k.telefon), k.notiz ? " – " + k.notiz : ""));
+  const tel = vm.notfall_telefon || vm.telefon;
+  if (tel) li.push(el("li", {}, el("b", {}, "Vermieter: "), telLink(tel)));
+  return el("div", { class: "notfallbox" }, el("details", {}, el("summary", {}, "Notfall? Hier sofort handeln"), el("ul", {}, li)));
+}
+
+function zeichne() {
+  const app = $("#app"), offen = info.vorgaenge.filter((v) => v.status !== "abgeschlossen").length;
+  $("#titel").textContent = (info.mieter.name ? "Guten Tag, " + info.mieter.name : "Mieterservice");
+  const tabs = el("div", { class: "tabs", role: "tablist" },
+    el("button", { class: "tab" + (ansicht === "neu" ? " on" : ""), role: "tab", "aria-selected": String(ansicht === "neu"), type: "button", onclick: () => { ansicht = "neu"; erfolg = null; zeichne(); } }, "Neue Meldung"),
+    el("button", { class: "tab" + (ansicht === "liste" ? " on" : ""), role: "tab", "aria-selected": String(ansicht === "liste"), type: "button", onclick: () => { ansicht = "liste"; zeichne(); } },
+      "Meine Meldungen" + (info.vorgaenge.length ? " · " + info.vorgaenge.length : "")));
+  app.replaceChildren(notfallBox(), tabs, ansicht === "neu" ? (erfolg ? erfolgAnsicht() : formular()) : liste());
+}
+
+// ---------- Neue Meldung ----------
+function formular() {
+  const f = el("form", { novalidate: true, onsubmit: (e) => { e.preventDefault(); absenden(); } });
+  const merke = () => speichern("entwurf_" + TOKEN.slice(0, 8), Object.assign({}, entwurf, { idem: entwurf.idem }));
+
+  // 1 Kategorie
+  const k = el("div", { class: "karte" }, el("div", { class: "schritt" }, el("span", { class: "nr" }, "1"), el("h2", {}, "Was ist betroffen?")));
+  const grid = el("div", { class: "kategorien", role: "radiogroup", "aria-label": "Art des Anliegens" });
+  for (const [key, txt] of KATEGORIEN)
+    grid.append(el("button", { type: "button", class: "kat" + (entwurf.kategorie === key ? " on" : ""), role: "radio", "aria-checked": String(entwurf.kategorie === key),
+      onclick: () => { entwurf.kategorie = key; merke(); zeichne(); } }, icon(key), txt));
+  k.append(grid, el("div", { class: "fehler-feld", id: "f-kategorie", hidden: true }, "Bitte wählen Sie aus, was betroffen ist."));
+  f.append(k);
+
+  // 2 Dringlichkeit
+  const d = el("div", { class: "karte" }, el("div", { class: "schritt" }, el("span", { class: "nr" }, "2"), el("h2", {}, "Wie dringend ist es?")));
+  const opts = [["notfall", "Notfall", "Gefahr oder der Schaden breitet sich aus – z. B. Wasser läuft, kein Strom in der ganzen Wohnung, Wohnung nicht abschließbar."],
+    ["dringend", "Dringend", "Starke Einschränkung – z. B. Heizung oder Warmwasser fällt aus, einziges WC verstopft. Rückmeldung innerhalb von 24 Stunden."],
+    ["normal", "Normal", "Mangel ohne akute Folgen – z. B. tropfender Wasserhahn, klemmende Tür. Rückmeldung innerhalb von 2 Werktagen."]];
+  const w = el("div", { class: "wahl", role: "radiogroup", "aria-label": "Dringlichkeit" });
+  for (const [key, titel, text] of opts) {
+    const inp = el("input", { type: "radio", name: "dringlichkeit", value: key, id: "d-" + key, checked: entwurf.dringlichkeit === key, onchange: () => { entwurf.dringlichkeit = key; merke(); zeichne(); } });
+    w.append(el("label", { class: "option " + key, for: "d-" + key }, inp, el("b", {}, titel), el("small", {}, text)));
+  }
+  d.append(w, el("div", { class: "fehler-feld", id: "f-dringlichkeit", hidden: true }, "Bitte wählen Sie die Dringlichkeit."));
+  if (entwurf.dringlichkeit === "notfall") {
+    const tipps = SOFORT[entwurf.kategorie] || [];
+    const tel = info.vermieter.notfall_telefon || info.vermieter.telefon;
+    d.append(el("div", { class: "sofort" }, el("b", {}, "Bitte jetzt:"),
+      el("ul", {}, tipps.map((t) => el("li", {}, t)), el("li", {}, "Melden Sie den Notfall hier – der Vermieter wird sofort benachrichtigt."),
+        tel ? el("li", {}, "Rufen Sie zusätzlich an: ", telLink(tel)) : null)));
+  }
+  f.append(d);
+
+  // 3 Beschreibung
+  const b = el("div", { class: "karte" }, el("div", { class: "schritt" }, el("span", { class: "nr" }, "3"), el("h2", {}, "Was ist passiert?")));
+  const ort = el("select", { id: "ort", onchange: (e) => { entwurf.ort = e.target.value; merke(); } }, RAEUME.map((r) => el("option", { value: r, selected: entwurf.ort === r }, r || "Bitte wählen")));
+  const txt = el("textarea", { id: "beschreibung", maxlength: "4000", placeholder: "Was genau ist passiert? Seit wann? Haben Sie schon etwas unternommen?", oninput: (e) => { entwurf.beschreibung = e.target.value; merke(); } });
+  txt.value = entwurf.beschreibung;
+  b.append(el("label", { class: "feld", for: "ort" }, "Wo in der Wohnung?"), ort, el("label", { class: "feld", for: "beschreibung" }, "Beschreibung"), txt,
+    el("div", { class: "fehler-feld", id: "f-beschreibung", hidden: true }, "Bitte beschreiben Sie das Anliegen in ein paar Worten."));
+  // Fotos
+  b.append(el("label", { class: "feld" }, "Fotos ", el("small", {}, "(hilft sehr, bis zu " + MAX_FOTOS + ")")));
+  const fl = el("div", { class: "fotos" });
+  fotos.forEach((fo, i) => fl.append(el("div", { class: "foto" }, el("img", { src: fo.vorschau, alt: "Foto " + (i + 1) }),
+    el("button", { type: "button", "aria-label": "Foto " + (i + 1) + " entfernen", onclick: () => { fotos.splice(i, 1); zeichne(); } }, "×"))));
+  if (fotos.length < MAX_FOTOS) {
+    const inp = el("input", { type: "file", accept: "image/*", multiple: true, class: "sr", id: "foto-input", onchange: (e) => fotosHinzu(e.target.files) });
+    const add = el("label", { class: "foto-add", for: "foto-input" }, el("span", { html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>' }), "Foto hinzufügen");
+    fl.append(add, inp);
+  }
+  b.append(fl, el("div", { class: "fehler-feld", id: "f-fotos", hidden: true }));
+  f.append(b);
+
+  // 4 Erreichbarkeit
+  const e = el("div", { class: "karte" }, el("div", { class: "schritt" }, el("span", { class: "nr" }, "4"), el("h2", {}, "Wie erreichen wir Sie?")));
+  const tel = el("input", { type: "tel", id: "telefon", autocomplete: "tel", inputmode: "tel", value: entwurf.telefon, oninput: (ev) => { entwurf.telefon = ev.target.value; merke(); } });
+  const mail = el("input", { type: "email", id: "email", autocomplete: "email", value: entwurf.email, oninput: (ev) => { entwurf.email = ev.target.value; merke(); } });
+  const zug = el("textarea", { id: "zugang", maxlength: "1000", style: "min-height:80px", placeholder: "z. B. werktags ab 17 Uhr; Handwerker darf nach Absprache mit Schlüssel rein", oninput: (ev) => { entwurf.zugang = ev.target.value; merke(); } });
+  zug.value = entwurf.zugang;
+  e.append(el("label", { class: "feld", for: "telefon" }, "Telefon"), tel,
+    el("label", { class: "feld", for: "email" }, "E-Mail ", el("small", {}, "(für Bestätigung und Statusmeldungen)")), mail,
+    el("div", { class: "fehler-feld", id: "f-kontakt", hidden: true }, "Bitte geben Sie eine Telefonnummer oder E-Mail-Adresse an."),
+    el("label", { class: "feld", for: "zugang" }, "Erreichbarkeit und Zugang zur Wohnung ", el("small", {}, "(freiwillig)")), zug);
+  const ein = el("input", { type: "checkbox", id: "einverstanden", checked: entwurf.einverstanden, onchange: (ev) => { entwurf.einverstanden = ev.target.checked; merke(); } });
+  e.append(el("label", { class: "check", for: "einverstanden" }, ein, el("span", {}, "Ich bin einverstanden, dass meine Angaben und Fotos zur Bearbeitung gespeichert und, soweit nötig, an beauftragte Handwerker oder die Hausverwaltung weitergegeben werden. ",
+      el("a", { href: "#", onclick: (ev) => { ev.preventDefault(); datenschutz(); } }, "Datenschutzhinweis"))),
+    el("div", { class: "fehler-feld", id: "f-einverstanden", hidden: true }, "Bitte bestätigen Sie den Datenschutzhinweis."));
+  f.append(e);
+
+  const btn = el("button", { class: "btn primary gross", type: "submit", id: "senden", disabled: senden }, senden ? "Wird gesendet …" : "Meldung absenden");
+  f.append(btn, el("div", { id: "sende-fehler", role: "alert" }));
+  return f;
+}
+
+async function fotosHinzu(liste) {
+  const fe = $("#f-fotos");
+  for (const datei of Array.from(liste || [])) {
+    if (fotos.length >= MAX_FOTOS) break;
+    try { fotos.push(await verkleinern(datei)); }
+    catch (e) { if (fe) { fe.hidden = false; fe.textContent = "Das Foto „" + datei.name + "“ konnte nicht gelesen werden. Bitte als JPG oder PNG aufnehmen."; } }
+  }
+  zeichne();
+}
+// Fotos im Browser auf höchstens 1600 px verkleinern (schnellere Übertragung, weniger Daten)
+function verkleinern(datei) {
+  return new Promise((ok, fehler) => {
+    const url = URL.createObjectURL(datei), img = new Image();
+    img.onload = () => {
+      const f = Math.min(1, MAX_KANTE / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * f); c.height = Math.round(img.naturalHeight * f);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      const daten = c.toDataURL("image/jpeg", 0.82); URL.revokeObjectURL(url);
+      ok({ mime: "image/jpeg", base64: daten.split(",")[1], vorschau: daten });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); fehler(new Error("unlesbar")); };
+    img.src = url;
+  });
+}
+
+function pruefen() {
+  const zeige = (id, an) => { const n = $("#" + id); if (n) n.hidden = !an; return an; };
+  let erster = null;
+  const regeln = [["f-kategorie", !entwurf.kategorie, ".kat"], ["f-dringlichkeit", !entwurf.dringlichkeit, "#d-normal"],
+    ["f-beschreibung", (entwurf.beschreibung || "").trim().length < 10, "#beschreibung"],
+    ["f-kontakt", !(entwurf.telefon || "").trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((entwurf.email || "").trim()), "#telefon"],
+    ["f-einverstanden", !entwurf.einverstanden, "#einverstanden"]];
+  for (const [id, fehlt, fokus] of regeln) if (zeige(id, fehlt) && !erster) erster = fokus;
+  if ((entwurf.email || "").trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(entwurf.email.trim())) { const n = $("#f-kontakt"); n.hidden = false; n.textContent = "Die E-Mail-Adresse scheint nicht vollständig zu sein."; erster = erster || "#email"; }
+  if (erster) { const n = $(erster); if (n) { n.scrollIntoView({ block: "center" }); n.focus({ preventScroll: true }); } return false; }
+  return true;
+}
+
+async function absenden() {
+  if (senden || !pruefen()) return;
+  senden = true; const btn = $("#senden"); btn.disabled = true; btn.textContent = "Wird gesendet …"; $("#sende-fehler").replaceChildren();
+  const j = await api("POST", { action: "melden", t: TOKEN, kategorie: entwurf.kategorie, dringlichkeit: entwurf.dringlichkeit, ort: entwurf.ort, beschreibung: entwurf.beschreibung.trim(),
+    zugang: entwurf.zugang, telefon: entwurf.telefon.trim(), email: entwurf.email.trim(), idem: entwurf.idem, fotos: fotos.map((f) => ({ mime: f.mime, base64: f.base64 })) });
+  senden = false;
+  if (!j.ok) {
+    btn.disabled = false; btn.textContent = "Meldung absenden";
+    const tel = info.vermieter.notfall_telefon || info.vermieter.telefon;
+    $("#sende-fehler").replaceChildren(el("div", { class: "meldung-fehler" }, j.fehler || "Die Meldung konnte nicht gesendet werden.", " Ihre Eingaben bleiben erhalten – bitte versuchen Sie es erneut.",
+      entwurf.dringlichkeit === "notfall" && tel ? el("div", {}, "Im Notfall bitte anrufen: ", telLink(tel)) : null));
+    return;
+  }
+  erfolg = { nr: j.nr, dringlichkeit: entwurf.dringlichkeit, email: entwurf.email.trim() };
+  try { localStorage.removeItem("ms_entwurf_" + TOKEN.slice(0, 8)); } catch (e) {}
+  fotos = []; entwurf = neuerEntwurf();
+  const neu = await api("GET", null, "?t=" + encodeURIComponent(TOKEN)); if (neu.ok) info = neu;
+  zeichne(); window.scrollTo({ top: 0 });
+}
+
+function erfolgAnsicht() {
+  const zusage = erfolg.dringlichkeit === "notfall" ? "Ihr Vermieter wurde sofort benachrichtigt und meldet sich so schnell wie möglich."
+    : erfolg.dringlichkeit === "dringend" ? "Sie erhalten innerhalb von 24 Stunden eine Rückmeldung." : "Sie erhalten innerhalb von 2 Werktagen eine Rückmeldung.";
+  return el("div", { class: "karte erfolg" },
+    el("div", { class: "haken", html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' }),
+    el("h2", {}, "Vielen Dank – Ihre Meldung ist eingegangen"),
+    el("p", { class: "muted" }, "Ihre Vorgangsnummer"), el("p", { class: "vnr" }, erfolg.nr),
+    el("p", {}, zusage), erfolg.email ? el("p", { class: "muted" }, "Eine Bestätigung geht an " + erfolg.email + ".") : null,
+    el("div", { class: "aktionen", style: "justify-content:center" },
+      el("button", { class: "btn primary", type: "button", onclick: () => { ansicht = "liste"; erfolg = null; zeichne(); } }, "Meine Meldungen ansehen"),
+      el("button", { class: "btn", type: "button", onclick: () => { erfolg = null; zeichne(); } }, "Weitere Meldung")));
+}
+
+// ---------- Meine Meldungen ----------
+function liste() {
+  if (!info.vorgaenge.length) return el("div", { class: "karte liste-leer" }, "Sie haben noch keine Meldung gesendet.");
+  const box = el("div", {});
+  for (const v of info.vorgaenge) {
+    const stufe = STATUS_STUFE[v.status] || 1, fertig = v.status === "erledigt" || v.status === "abgeschlossen";
+    const kopf = el("summary", {},
+      el("div", { class: "vg-kopf" }, el("span", { class: "vg-nr" }, v.nr), el("span", { class: "pill " + (fertig ? "erledigt" : "offen") }, v.status_text),
+        v.dringlichkeit === "notfall" ? el("span", { class: "pill notfall" }, "Notfall") : null, el("span", { class: "vg-datum" }, datum(v.erstellt))),
+      el("div", {}, el("b", {}, v.kategorie), v.ort ? el("span", { class: "muted" }, " · " + v.ort) : null));
+    const inhalt = el("div", {},
+      el("div", { class: "fortschritt", "aria-hidden": "true" }, [1, 2, 3, 4].map((i) => el("span", { class: i <= stufe ? "an" : "" }))),
+      el("div", { class: "fs-text", "aria-hidden": "true" }, el("span", {}, "Eingegangen"), el("span", {}, "In Bearbeitung"), el("span", {}, "Auftrag / Termin"), el("span", {}, "Erledigt")),
+      v.termin && v.status === "termin" ? el("div", { class: "termin" }, el("b", {}, "Termin: "), terminText(v.termin)) : null,
+      el("p", { class: "muted", style: "margin-top:10px;white-space:pre-wrap" }, v.beschreibung),
+      el("div", { class: "verlauf" }, (v.nachrichten || []).map((n) => el("div", { class: "nachricht " + n.von }, n.text,
+        n.von !== "system" ? el("small", {}, (n.von === "mieter" ? "Sie" : "Vermieter") + " · " + zeit(n.zeit)) : el("small", {}, zeit(n.zeit))))));
+    if (v.status !== "abgeschlossen") inhalt.append(antwortFeld(v, fertig));
+    if (fertig && !v.bewertung) inhalt.append(bewertung(v));
+    if (v.bewertung) inhalt.append(el("p", { class: "muted" }, "Ihre Bewertung: " + "★".repeat(v.bewertung) + "☆".repeat(5 - v.bewertung)));
+    box.append(el("details", { class: "karte vorgang", id: "vg-" + v.nr }, kopf, inhalt));
+  }
+  return box;
+}
+
+function antwortFeld(v, fertig) {
+  const id = "antwort-" + v.nr;
+  const ta = el("textarea", { id, maxlength: "2000", style: "min-height:70px", placeholder: fertig ? "Besteht das Problem weiter? Schreiben Sie uns hier." : "Nachricht an den Vermieter" });
+  const status = el("div", { role: "status", class: "hinweis" });
+  const btn = el("button", { class: "btn", type: "button", onclick: async () => {
+    const text = ta.value.trim(); if (text.length < 2) { status.textContent = "Bitte eine Nachricht eingeben."; return; }
+    btn.disabled = true; status.textContent = "Wird gesendet …";
+    const j = await api("POST", { action: "nachricht", t: TOKEN, nr: v.nr, text });
+    btn.disabled = false;
+    if (!j.ok) { status.textContent = j.fehler || "Nicht gesendet. Bitte erneut versuchen."; return; }
+    const neu = await api("GET", null, "?t=" + encodeURIComponent(TOKEN)); if (neu.ok) info = neu; zeichne();
+    const n = document.getElementById("vg-" + v.nr); if (n) n.open = true;
+  } }, "Nachricht senden");
+  return el("div", {}, el("label", { class: "feld", for: id }, fertig ? "Noch nicht in Ordnung?" : "Nachricht"), ta, el("div", { class: "aktionen" }, btn), status);
+}
+
+function bewertung(v) {
+  let sterne = 0;
+  const status = el("div", { role: "status", class: "hinweis" });
+  const reihe = el("div", { class: "sterne", role: "radiogroup", "aria-label": "Bewertung" });
+  const male = () => reihe.querySelectorAll(".stern").forEach((s, i) => { s.classList.toggle("an", i < sterne); s.setAttribute("aria-checked", String(i + 1 === sterne)); });
+  for (let i = 1; i <= 5; i++) reihe.append(el("button", { type: "button", class: "stern", role: "radio", "aria-label": i + " von 5 Sternen", onclick: () => { sterne = i; male(); } }, "★"));
+  const id = "bew-" + v.nr, ta = el("textarea", { id, maxlength: "1000", style: "min-height:60px", placeholder: "Möchten Sie noch etwas sagen? (freiwillig)" });
+  const btn = el("button", { class: "btn primary", type: "button", onclick: async () => {
+    if (!sterne) { status.textContent = "Bitte wählen Sie 1 bis 5 Sterne."; return; }
+    btn.disabled = true;
+    const j = await api("POST", { action: "bewertung", t: TOKEN, nr: v.nr, sterne, text: ta.value.trim() });
+    btn.disabled = false;
+    if (!j.ok) { status.textContent = j.fehler || "Nicht gesendet."; return; }
+    const neu = await api("GET", null, "?t=" + encodeURIComponent(TOKEN)); if (neu.ok) info = neu; zeichne();
+  } }, "Bewertung senden");
+  return el("div", { style: "margin-top:14px" }, el("h3", {}, "Wie zufrieden sind Sie?"), reihe, el("label", { class: "sr", for: id }, "Kommentar"), ta, el("div", { class: "aktionen" }, btn), status);
+}
+
+// ---------- Datenschutz ----------
+function datenschutz() {
+  const vm = (info && info.vermieter) || {};
+  const verantw = [vm.name, vm.anschrift, vm.email ? "E-Mail: " + vm.email : null, vm.telefon ? "Telefon: " + vm.telefon : null].filter(Boolean).join("\n");
+  $("#ds-inhalt").replaceChildren(
+    el("h2", {}, "Datenschutzhinweis"),
+    el("h3", {}, "Verantwortlich"), el("p", { style: "white-space:pre-wrap" }, verantw || "Ihr Vermieter"),
+    el("h3", {}, "Welche Daten und wofür"),
+    el("p", {}, "Wir verarbeiten die Angaben, die Sie hier eingeben (Art und Beschreibung des Anliegens, Ort in der Wohnung, Fotos, Telefonnummer, E-Mail-Adresse, Angaben zur Erreichbarkeit), sowie die Nachrichten zu Ihrer Meldung. Zweck ist ausschließlich die Bearbeitung Ihres Anliegens im Rahmen des Mietverhältnisses (Art. 6 Abs. 1 lit. b DSGVO)."),
+    el("h3", {}, "Weitergabe"),
+    el("p", {}, "Soweit für die Behebung nötig, geben wir Angaben und Fotos an beauftragte Handwerksbetriebe oder an die Hausverwaltung der Eigentümergemeinschaft weiter. Eine Weitergabe zu anderen Zwecken erfolgt nicht."),
+    el("h3", {}, "Technik und Speicherort"),
+    el("p", {}, "Die Daten werden verschlüsselt übertragen und bei unserem Datenbank-Anbieter Supabase in einem Rechenzentrum in der EU (Frankfurt) gespeichert. Zur Einordnung der Meldung kann der Text, bei Fotos auch das Bild, automatisiert durch einen KI-Dienst (OpenAI, USA) ausgewertet werden, um Zuständigkeit und Dringlichkeit einzuschätzen; dabei werden keine Namen, Adressen oder Kontaktdaten übermittelt. Diese Seite verwendet keine Cookies, keine Analyse- und keine Werbedienste. Ihr Browser speichert einen unfertigen Entwurf nur lokal auf Ihrem Gerät."),
+    el("h3", {}, "Speicherdauer"),
+    el("p", {}, "Meldungen werden bis zum Ende des Mietverhältnisses und darüber hinaus nur so lange aufbewahrt, wie es gesetzliche Aufbewahrungs- oder Verjährungsfristen erfordern."),
+    el("h3", {}, "Ihre Rechte"),
+    el("p", {}, "Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Widerspruch sowie das Recht auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde, in Bayern beim Bayerischen Landesamt für Datenschutzaufsicht (BayLDA). Wenden Sie sich dazu gern direkt an uns."));
+  $("#ds").showModal ? $("#ds").showModal() : $("#ds").setAttribute("open", "");
+}
+$("#ds-zu").addEventListener("click", () => $("#ds").close ? $("#ds").close() : $("#ds").removeAttribute("open"));
+$("#ds-link").addEventListener("click", (e) => { e.preventDefault(); datenschutz(); });
+window.addEventListener("hashchange", () => { const z = decodeURIComponent(location.hash.slice(1)); if (info && info.vorgaenge.some((v) => v.nr === z)) { ansicht = "liste"; zeichne(); const n = document.getElementById("vg-" + z); if (n) { n.open = true; n.scrollIntoView(); } } });
+start();
+</script>
+</body>
+</html>
