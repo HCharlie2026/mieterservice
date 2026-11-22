@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Mieterservice – Demo</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1b2430; --muted:#5d6b7a; --line:#dde3e9;
+    --brand:#1f5f8b; --brand-ink:#ffffff; --brand-soft:#e6f0f7;
+    --warn:#b4231f; --warn-soft:#fdecea; --ok:#1e7a46; --ok-soft:#e5f4ec; --amber:#a15c00; --amber-soft:#fff4e0;
+    --r:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#11161c; --card:#1a222b; --ink:#e7edf3; --muted:#9aa8b6; --line:#2c3743;
+      --brand:#4a9ad4; --brand-ink:#0d1620; --brand-soft:#1c3142;
+      --warn:#ff7b72; --warn-soft:#3a1d1c; --ok:#5fd394; --ok-soft:#173326; --amber:#f0b45a; --amber-soft:#3a2c14; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 14px calc(28px + env(safe-area-inset-bottom));}
+  .demo{background:var(--amber-soft);color:var(--amber);font-size:13px;text-align:center;padding:7px 12px;font-weight:600}
+  header{display:flex;align-items:center;gap:12px;padding:16px 0 10px}
+  .logo{width:44px;height:44px;border-radius:12px;background:var(--brand);color:var(--brand-ink);
+    display:grid;place-items:center;font-weight:800;letter-spacing:.5px;flex:none}
+  header .t{font-weight:700;font-size:17px} header .s{color:var(--muted);font-size:13px}
+  h1{font-size:23px;margin:8px 0 4px} h2{font-size:16px;margin:0 0 10px}
+  .lead{color:var(--muted);margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
+  .unit{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .unit .n{font-weight:700} .unit .a{color:var(--muted);font-size:14px}
+  .chip{font-size:12px;background:var(--brand-soft);color:var(--brand);padding:4px 9px;border-radius:99px;white-space:nowrap;font-weight:600}
+  .alarm{background:var(--warn-soft);border-color:transparent;color:var(--ink)}
+  .alarm b{color:var(--warn)} .alarm a{color:var(--warn);font-weight:700;text-decoration:none;white-space:nowrap}
+  label.l{display:block;font-weight:600;margin:14px 0 6px} .hint{color:var(--muted);font-size:13px;font-weight:400}
+  .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .tile{border:1.5px solid var(--line);border-radius:12px;padding:11px 10px;background:transparent;color:var(--ink);
+    font:inherit;font-size:15px;text-align:left;cursor:pointer;display:flex;gap:8px;align-items:center;min-height:52px}
+  .tile .i{font-size:20px} .tile[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+  input[type=text],input[type=tel],input[type=email],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--card);
+    border:1.5px solid var(--line);border-radius:10px;padding:11px 12px}
+  textarea{min-height:110px;resize:vertical}
+  input:focus,textarea:focus,select:focus,.tile:focus-visible,button:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+  .seg{display:flex;gap:8px} .seg .tile{flex:1;justify-content:center;text-align:center}
+  .seg .tile.urgent[aria-pressed="true"]{border-color:var(--warn);background:var(--warn-soft)}
+  .photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .ph{width:78px;height:78px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--line)}
+  .ph img{width:100%;height:100%;object-fit:cover}
+  .ph button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;line-height:24px;padding:0}
+  .add{width:78px;height:78px;border-radius:10px;border:1.5px dashed var(--muted);display:grid;place-items:center;color:var(--muted);cursor:pointer;font-size:28px}
+  .check{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:14px}
+  .check input{width:20px;height:20px;margin-top:1px;flex:none}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font:inherit;font-weight:700;font-size:17px;
+    background:var(--brand);color:var(--brand-ink);cursor:pointer;margin-top:16px}
+  .btn.sec{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
+  .err{color:var(--warn);font-size:14px;margin-top:8px;min-height:1em}
+  .hidden{display:none!important}
+  .okbox{text-align:center}
+  .okicon{width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;font-size:34px;margin:6px auto 8px}
+  .ticket{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:19px;background:var(--brand-soft);color:var(--brand);
+    display:inline-block;padding:6px 12px;border-radius:8px;margin:6px 0}
+  .tl{list-style:none;margin:6px 0 0;padding:0}
+  .tl li{display:flex;gap:12px;align-items:center;padding:8px 0;color:var(--muted)}
+  .tl .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:12px}
+  .tl li.done{color:var(--ink)} .tl li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+  .tl li.now{color:var(--ink);font-weight:700} .tl li.now .dot{border-color:var(--brand);background:var(--brand-soft)}
+  .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin:14px 0 0}
+  .tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;padding:9px;border-radius:9px;cursor:pointer}
+  .tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink)}
+  .mail .mh{font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px}
+  .mail .mh b{color:var(--ink)}
+  dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0;font-size:14px}
+  dl.kv dt{color:var(--muted)} dl.kv dd{margin:0;word-break:break-word}
+  .badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px}
+  .b-urg{background:var(--warn-soft);color:var(--warn)} .b-norm{background:var(--brand-soft);color:var(--brand)}
+  .row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .row:last-child{border-bottom:0} .row .m{color:var(--muted);font-size:13px}
+  .stbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .stbtns button{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;padding:7px 12px;font:inherit;font-size:14px;cursor:pointer}
+  .stbtns button[aria-pressed="true"]{border-color:var(--ok);background:var(--ok-soft);color:var(--ok);font-weight:700}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:18px}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="demo" role="note">DEMO-VERSION · Es werden keine Daten versendet oder gespeichert</div>
+<div class="wrap">
+
+  <header>
+    <div class="logo" aria-hidden="true">MV</div>
+    <div><div class="t">Muster Hausverwaltung GmbH</div><div class="s">Mieterservice · Mo–Fr 8–16 Uhr</div></div>
+  </header>
+
+  <!-- ===== Formular ===== -->
+  <section id="formView">
+    <h1>Schaden oder Anliegen melden</h1>
+    <p class="lead">Dauert etwa 1 Minute. Ihre Wohnung wurde über den QR-Code erkannt.</p>
+
+    <div class="card unit">
+      <div>
+        <div class="n">Max Mustermann</div>
+        <div class="a">Straße XY, Nr. 9<br>Wunderland · Wohnung 09, 2. OG links</div>
+      </div>
+      <span class="chip">✓ per QR erkannt</span>
+    </div>
+
+    <div class="card alarm" role="note">
+      <b>Notfall?</b> Bei Wasserrohrbruch, Gasgeruch, Brand oder Stromausfall im ganzen Haus nicht dieses Formular nutzen, sondern sofort anrufen:
+      <a href="tel:000000000">Notdienst 0000 / 000 000</a> · bei Gasgeruch oder Feuer: <a href="tel:112">112</a>
+    </div>
+
+    <form id="f" class="card" novalidate>
+      <h2>1. Worum geht es?</h2>
+      <div class="tiles" id="cat" role="group" aria-label="Kategorie">
+        <button type="button" class="tile" data-v="Heizung / Warmwasser"><span class="i">🔥</span>Heizung / Warmwasser</button>
+        <button type="button" class="tile" data-v="Wasser / Sanitär"><span class="i">🚿</span>Wasser / Sanitär</button>
+        <button type="button" class="tile" data-v="Elektrik / Licht"><span class="i">💡</span>Elektrik / Licht</button>
+        <button type="button" class="tile" data-v="Fenster / Türen"><span class="i">🚪</span>Fenster / Türen</button>
+        <button type="button" class="tile" data-v="Feuchtigkeit / Schimmel"><span class="i">💧</span>Feuchtigkeit / Schimmel</button>
+        <button type="button" class="tile" data-v="Treppenhaus / Außen"><span class="i">🏢</span>Treppenhaus / Außen</button>
+        <button type="button" class="tile" data-v="Geräusche / Nachbarn"><span class="i">🔊</span>Geräusche / Nachbarn</button>
+        <button type="button" class="tile" data-v="Sonstiges"><span class="i">📝</span>Sonstiges</button>
+      </div>
+
+      <label class="l" for="ort">Wo genau?</label>
+      <select id="ort">
+        <option value="">Bitte wählen</option>
+        <option>Küche</option><option>Bad / WC</option><option>Wohnzimmer</option><option>Schlafzimmer</option>
+        <option>Flur</option><option>Balkon</option><option>Keller</option><option>Treppenhaus</option><option>Außenbereich</option>
+      </select>
+
+      <label class="l" for="txt">Beschreibung <span class="hint">– was ist passiert, seit wann?</span></label>
+      <textarea id="txt" maxlength="1500" placeholder="z. B. Heizkörper im Bad wird seit gestern nicht mehr warm, Thermostat auf 5."></textarea>
+
+      <label class="l">Wie dringend?</label>
+      <div class="seg" id="prio" role="group" aria-label="Dringlichkeit">
+        <button type="button" class="tile" data-v="Normal" aria-pressed="true">Normal</button>
+        <button type="button" class="tile urgent" data-v="Dringend">Dringend</button>
+      </div>
+
+      <h2 style="margin-top:20px">2. Fotos <span class="hint">(optional, bis 5)</span></h2>
+      <div class="photos" id="photos">
+        <label class="add" for="file" aria-label="Foto hinzufügen">＋</label>
+      </div>
+      <input id="file" type="file" accept="image/*" multiple class="hidden">
+
+      <h2 style="margin-top:20px">3. Erreichbarkeit</h2>
+      <label class="l" for="tel">Telefon</label>
+      <input id="tel" type="tel" inputmode="tel" autocomplete="tel" value="0000 / 123 456">
+      <label class="l" for="mail">E-Mail <span class="hint">(für Statusmeldungen)</span></label>
+      <input id="mail" type="email" autocomplete="email" value="max.mustermann@example.de">
+      <label class="l" for="zeit">Wann sind Sie meist erreichbar?</label>
+      <select id="zeit"><option>Ganztags</option><option>Vormittags</option><option>Nachmittags</option><option>Ab 17 Uhr</option></select>
+
+      <label class="check"><input type="checkbox" id="zutritt"> Handwerker darf die Wohnung nach Absprache auch in meiner Abwesenheit betreten (Schlüssel z. B. beim Nachbarn).</label>
+      <label class="check"><input type="checkbox" id="dsgvo"> Ich bin einverstanden, dass meine Angaben und Fotos zur Bearbeitung an die Hausverwaltung und beauftragte Handwerker weitergegeben werden.</label>
+
+      <div class="err" id="err" role="alert"></div>
+      <button class="btn" type="submit">Meldung absenden</button>
+    </form>
+  </section>
+
+  <!-- ===== Bestätigung ===== -->
+  <section id="doneView" class="hidden">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabM" aria-selected="true">Ansicht Mieter</button>
+      <button role="tab" id="tabV" aria-selected="false">Ansicht Verwalter</button>
+    </div>
+
+    <div id="mieterPane">
+      <div class="card okbox">
+        <div class="okicon">✓</div>
+        <h1 style="margin:0">Danke, Ihre Meldung ist eingegangen</h1>
+        <div class="ticket" id="tno"></div>
+        <p class="lead" style="margin:6px 0 0">Bestätigung an <span id="cmail"></span>. Wir melden uns innerhalb von <b id="sla"></b>.</p>
+      </div>
+      <div class="card">
+        <h2>Bearbeitungsstand</h2>
+        <ol class="tl" id="tl"></ol>
+      </div>
+      <button class="btn sec" id="again" type="button">Weitere Meldung</button>
+    </div>
+
+    <div id="verwPane" class="hidden">
+      <div class="card mail">
+        <div class="mh">
+          <div><b>Von:</b> Mieterservice &lt;meldung@…&gt;</div>
+          <div><b>An:</b> technik@muster-hausverwaltung.de</div>
+          <div><b>Betreff:</b> <span id="msub"></span></div>
+        </div>
+        <dl class="kv" id="mkv"></dl>
+        <div class="photos" id="mph" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>Status ändern <span class="hint">– Mieter wird automatisch informiert</span></h2>
+        <div class="stbtns" id="stb"></div>
+      </div>
+      <div class="card">
+        <h2>Offene Meldungen · Straße XY 9</h2>
+        <div id="list"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Demo-Prototyp · Musterdaten · <a href="#" id="reset">Demo zurücksetzen</a></footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var STEPS = ["Eingegangen","In Bearbeitung","Handwerker beauftragt","Erledigt"];
+  var state = { cat:"", prio:"Normal", photos:[], status:0, ticket:"", ts:null };
+
+  function pick(groupId, key){
+    var g = $(groupId);
+    g.addEventListener("click", function(e){
+      var b = e.target.closest(".tile"); if(!b) return;
+      Array.prototype.forEach.call(g.querySelectorAll(".tile"), function(x){ x.setAttribute("aria-pressed","false"); });
+      b.setAttribute("aria-pressed","true"); state[key] = b.dataset.v; $("err").textContent = "";
+    });
+  }
+  pick("cat","cat"); pick("prio","prio");
+
+  // Fotos: lokal verkleinern, nur im Browser anzeigen
+  $("file").addEventListener("change", function(e){
+    var files = Array.prototype.slice.call(e.target.files || []);
+    files.slice(0, 5 - state.photos.length).forEach(function(file){
+      var rd = new FileReader();
+      rd.onload = function(){
+        var img = new Image();
+        img.onload = function(){
+          var s = Math.min(1, 1280 / Math.max(img.width, img.height));
+          var c = document.createElement("canvas"); c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          state.photos.push(c.toDataURL("image/jpeg", 0.8)); renderPhotos();
+        };
+        img.src = rd.result;
+      };
+      rd.readAsDataURL(file);
+    });
+    e.target.value = "";
+  });
+  function renderPhotos(){
+    var box = $("photos");
+    Array.prototype.forEach.call(box.querySelectorAll(".ph"), function(n){ n.remove(); });
+    state.photos.forEach(function(src, i){
+      var d = document.createElement("div"); d.className = "ph";
+      d.innerHTML = '<img alt="Foto '+(i+1)+'"><button type="button" aria-label="Foto entfernen">×</button>';
+      d.querySelector("img").src = src;
+      d.querySelector("button").onclick = function(){ state.photos.splice(i,1); renderPhotos(); };
+      box.insertBefore(d, box.querySelector(".add"));
+    });
+    box.querySelector(".add").classList.toggle("hidden", state.photos.length >= 5);
+  }
+
+  $("f").addEventListener("submit", function(e){
+    e.preventDefault();
+    var msg = "";
+    if(!state.cat) msg = "Bitte wählen Sie aus, worum es geht.";
+    else if($("txt").value.trim().length < 5) msg = "Bitte beschreiben Sie kurz das Problem.";
+    else if(!$("dsgvo").checked) msg = "Bitte bestätigen Sie die Weitergabe Ihrer Angaben.";
+    if(msg){ $("err").textContent = msg; return; }
+    state.ticket = "SM-" + new Date().getFullYear() + "-" + String(Math.floor(1000 + Math.random()*9000));
+    state.ts = new Date(); state.status = 0;
+    showDone();
+  });
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function fmt(d){ return d.toLocaleDateString("de-DE") + ", " + d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}) + " Uhr"; }
+
+  function showDone(){
+    $("formView").classList.add("hidden"); $("doneView").classList.remove("hidden");
+    $("tno").textContent = state.ticket;
+    $("cmail").textContent = $("mail").value || "Ihre E-Mail";
+    $("sla").textContent = state.prio === "Dringend" ? "4 Stunden" : "2 Werktagen";
+    var urg = state.prio === "Dringend";
+    $("msub").textContent = (urg ? "[DRINGEND] " : "") + state.ticket + " · " + state.cat + " · Straße XY 9, Whg. 09";
+    var kv = [
+      ["Vorgang", state.ticket], ["Eingang", fmt(state.ts)],
+      ["Priorität", '<span class="badge '+(urg?"b-urg":"b-norm")+'">'+esc(state.prio)+'</span>'],
+      ["Mieter", "Max Mustermann"], ["Objekt", "Straße XY, Nr. 9, Wunderland<br>Whg. 09, 2. OG links"],
+      ["Kategorie", esc(state.cat)], ["Ort", esc($("ort").value || "–")],
+      ["Beschreibung", esc($("txt").value.trim()).replace(/\n/g,"<br>")],
+      ["Telefon", esc($("tel").value || "–")], ["E-Mail", esc($("mail").value || "–")],
+      ["Erreichbar", esc($("zeit").value)], ["Zutritt ohne Mieter", $("zutritt").checked ? "Ja, nach Absprache" : "Nein"],
+      ["Fotos", state.photos.length ? state.photos.length + " angehängt" : "keine"]
+    ];
+    $("mkv").innerHTML = kv.map(function(r){ return "<dt>"+r[0]+"</dt><dd>"+r[1]+"</dd>"; }).join("");
+    var mph = $("mph"); mph.innerHTML = "";
+    state.photos.forEach(function(src){ var d=document.createElement("div"); d.className="ph"; var i=new Image(); i.src=src; i.alt="Foto"; d.appendChild(i); mph.appendChild(d); });
+    $("stb").innerHTML = STEPS.map(function(s,i){ return '<button type="button" data-i="'+i+'">'+s+'</button>'; }).join("");
+    renderStatus(); setTab("M"); window.scrollTo(0,0);
+  }
+
+  function renderStatus(){
+    $("tl").innerHTML = STEPS.map(function(s,i){
+      var cls = i < state.status ? "done" : (i === state.status ? (i === STEPS.length-1 ? "done" : "now") : "");
+      var sym = (i < state.status || (i === state.status && i === STEPS.length-1)) ? "✓" : "";
+      var when = i === 0 ? '<div class="hint">'+fmt(state.ts)+'</div>' : "";
+      return '<li class="'+cls+'"><span class="dot">'+sym+'</span><div>'+s+when+'</div></li>';
+    }).join("");
+    Array.prototype.forEach.call($("stb").querySelectorAll("button"), function(b){
+      b.setAttribute("aria-pressed", String(Number(b.dataset.i) === state.status));
+    });
+    var urg = state.prio === "Dringend";
+    var rows = [
+      { t: state.ticket + " · " + state.cat, m: "Whg. 09 · " + STEPS[state.status], b: urg ? '<span class="badge b-urg">Dringend</span>' : '<span class="badge b-norm">Normal</span>' },
+      { t: "SM-2026-0412 · Treppenhaus / Außen", m: "Haustür schließt schwer · Handwerker beauftragt", b: '<span class="badge b-norm">Normal</span>' },
+      { t: "SM-2026-0398 · Wasser / Sanitär", m: "Whg. 04 · tropfender Wasserhahn · In Bearbeitung", b: '<span class="badge b-norm">Normal</span>' }
+    ];
+    $("list").innerHTML = rows.map(function(r){ return '<div class="row"><div><div>'+esc(r.t)+'</div><div class="m">'+esc(r.m)+'</div></div>'+r.b+'</div>'; }).join("");
+  }
+  $("stb").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    state.status = Number(b.dataset.i); renderStatus();
+  });
+
+  function setTab(w){
+    $("tabM").setAttribute("aria-selected", String(w==="M")); $("tabV").setAttribute("aria-selected", String(w==="V"));
+    $("mieterPane").classList.toggle("hidden", w!=="M"); $("verwPane").classList.toggle("hidden", w!=="V");
+  }
+  $("tabM").onclick = function(){ setTab("M"); };
+  $("tabV").onclick = function(){ setTab("V"); };
+
+  function reset(){
+    state = { cat:"", prio:"Normal", photos:[], status:0, ticket:"", ts:null };
+    $("f").reset(); renderPhotos(); $("err").textContent = "";
+    Array.prototype.forEach.call(document.querySelectorAll("#cat .tile"), function(x){ x.setAttribute("aria-pressed","false"); });
+    Array.prototype.forEach.call(document.querySelectorAll("#prio .tile"), function(x){ x.setAttribute("aria-pressed", String(x.dataset.v==="Normal")); });
+    $("doneView").classList.add("hidden"); $("formView").classList.remove("hidden"); window.scrollTo(0,0);
+  }
+  $("again").onclick = reset;
+  $("reset").onclick = function(e){ e.preventDefault(); reset(); };
+})();
+</script>
+</body>
+</html>
